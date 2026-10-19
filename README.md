@@ -24,6 +24,7 @@ Prueba técnica para una API y una interfaz de gestión de reservas, desarrollad
 - Las credenciales viven en `.env`, que no se versiona; `.env.example` documenta las variables necesarias.
 - Twig mantiene el autoescaping activado. No se prevé usar `|raw`.
 - El esquema usa InnoDB, `utf8mb4`, importes `DECIMAL(10,2)`, restricciones `CHECK` y una clave foránea para preservar la integridad del historial. `database/schema.sql` es un inicializador de desarrollo: al reimportarlo recrea las dos tablas de la aplicación y sus datos de ejemplo.
+- La capa HTTP centraliza el enrutado por método y ruta, devuelve JSON con cabeceras de seguridad y registra internamente los errores inesperados sin mostrar trazas al cliente.
 
 ## Pendiente
 

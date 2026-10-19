@@ -1,0 +1,17 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http;
+
+interface Response
+{
+    public function statusCode(): int;
+
+    /** @return array<string, string> */
+    public function headers(): array;
+
+    public function body(): string;
+
+    public function send(): void;
+}
