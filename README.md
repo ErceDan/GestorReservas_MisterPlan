@@ -26,6 +26,8 @@ Prueba técnica para una API y una interfaz de gestión de reservas, desarrollad
 - El esquema usa InnoDB, `utf8mb4`, importes `DECIMAL(10,2)`, restricciones `CHECK` y una clave foránea para preservar la integridad del historial. `database/schema.sql` es un inicializador de desarrollo: al reimportarlo recrea las dos tablas de la aplicación y sus datos de ejemplo.
 - La capa HTTP centraliza el enrutado por método y ruta, devuelve JSON con cabeceras de seguridad y registra internamente los errores inesperados sin mostrar trazas al cliente.
 
+- Los estados se modelan con un enum respaldado por `string`: una reserva pendiente puede confirmarse o cancelarse; una confirmada puede cancelarse; una cancelada es terminal.
+
 ## Pendiente
 
 - Definir el esquema SQL y los datos iniciales.
