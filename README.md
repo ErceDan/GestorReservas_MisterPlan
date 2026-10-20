@@ -28,6 +28,8 @@ Prueba técnica para una API y una interfaz de gestión de reservas, desarrollad
 
 - Los estados se modelan con un enum respaldado por `string`: una reserva pendiente puede confirmarse o cancelarse; una confirmada puede cancelarse; una cancelada es terminal.
 
+- Las entidades de dominio son inmutables: cambiar el estado crea una nueva instancia. El importe se conserva como texto decimal para no introducir imprecisiones de `float`.
+
 ## Pendiente
 
 - Definir el esquema SQL y los datos iniciales.
