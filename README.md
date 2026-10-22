@@ -8,6 +8,14 @@ Prueba técnica para una API y una interfaz de gestión de reservas, desarrollad
 - Composer
 - MySQL 8 o MariaDB 10.6 o superior
 
+## Arranque local
+
+1. Copia `.env.example` como `.env` y completa las credenciales locales.
+2. Ejecuta `composer install`.
+3. Importa `database/schema.sql` con el cliente MySQL configurado en UTF-8. Por ejemplo: `mysql --default-character-set=utf8mb4 -u root -e "source database/schema.sql"`.
+   No uses `Get-Content ... | mysql` en PowerShell: puede alterar caracteres acentuados al importar.
+4. Arranca la aplicación con `php -S 127.0.0.1:8080 -t public` y abre `http://127.0.0.1:8080`.
+
 ## Estructura
 
 - `public/`: punto de entrada y recursos estáticos.
