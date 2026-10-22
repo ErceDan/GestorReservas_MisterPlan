@@ -32,6 +32,8 @@ Prueba técnica para una API y una interfaz de gestión de reservas, desarrollad
 
 - La validación de creación se ejecuta en servidor, limita el tamaño de los campos y devuelve errores por campo. Los importes se validan como decimales de hasta dos posiciones, sin convertirlos a `float`.
 
+- La creación y los cambios de estado se ejecutan dentro de transacciones PDO: reserva y evento se confirman juntos o se revierten juntos.
+
 ## Pendiente
 
 - Definir el esquema SQL y los datos iniciales.
