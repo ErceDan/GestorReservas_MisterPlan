@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Controller\ReservaApiController;
+use App\Controller\ReservaPageController;
 use App\Http\Router;
 use App\Infrastructure\ConnectionFactory;
 use App\Infrastructure\Environment;
@@ -10,6 +11,8 @@ use App\Repository\PdoReservaEventoRepository;
 use App\Repository\PdoReservaRepository;
 use App\Service\ReservaService;
 use App\Validation\CrearReservaValidator;
+use Twig\Environment as TwigEnvironment;
+use Twig\Loader\FilesystemLoader;
 
 Environment::load(__DIR__ . '/.env');
 
@@ -27,7 +30,11 @@ $service = new ReservaService(
     $connection,
 );
 $controller = new ReservaApiController($service);
+$twig = new TwigEnvironment(new FilesystemLoader(__DIR__ . '/templates'), ['autoescape' => 'html']);
+$pageController = new ReservaPageController($service, $twig);
 $router = new Router();
+$router->get('/', [$pageController, 'listado']);
+$router->get('/reservas/{id}', [$pageController, 'detalle']);
 $router->get('/api/reservas', [$controller, 'listar']);
 $router->get('/api/reservas/{id}', [$controller, 'detalle']);
 $router->post('/api/reservas', [$controller, 'crear']);
