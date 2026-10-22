@@ -1,0 +1,7 @@
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(?:src|vendor|database|tests)/ - [F,L,NC]
+    RewriteRule ^(?:\.env|bootstrap\.php|composer\.(?:json|lock)|phpunit\.xml)$ - [F,L,NC]
+</IfModule>
