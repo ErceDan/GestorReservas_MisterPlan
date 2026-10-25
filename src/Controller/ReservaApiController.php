@@ -23,6 +23,10 @@ final class ReservaApiController
     public function listar(Request $request, array $parameters): JsonResponse
     {
         $estado = $request->query('estado');
+
+        if ($estado === '') {
+            $estado = null;
+        }
         $desde = $this->fechaQuery($request->query('desde'), 'desde');
         $hasta = $this->fechaQuery($request->query('hasta'), 'hasta');
 
