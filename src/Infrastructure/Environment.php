@@ -8,6 +8,9 @@ use RuntimeException;
 
 final class Environment
 {
+    /** @var array<string, string> */
+    private static array $values = [];
+
     public static function load(string $path): void
     {
         if (!is_file($path)) {
@@ -24,17 +27,28 @@ final class Environment
             [$key, $value] = array_pad(explode('=', $line, 2), 2, '');
             $key = trim($key);
 
-            if ($key !== '' && (getenv($key) === false || getenv($key) === '')) {
-                putenv($key . '=' . trim($value));
+            if ($key !== '') {
+                self::$values[$key] = trim($value);
             }
         }
     }
 
-    public static function required(string $key): string
+    public static function get(string $key): ?string
     {
         $value = getenv($key);
 
-        if ($value === false || $value === '') {
+        if ($value !== false && $value !== '') {
+            return $value;
+        }
+
+        return self::$values[$key] ?? null;
+    }
+
+    public static function required(string $key): string
+    {
+        $value = self::get($key);
+
+        if ($value === null || $value === '') {
             throw new RuntimeException(sprintf('Falta la variable de entorno %s.', $key));
         }
 

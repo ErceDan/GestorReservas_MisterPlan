@@ -14,7 +14,7 @@ if (!is_file($projectRoot . '/vendor/autoload.php')) {
 require $projectRoot . '/vendor/autoload.php';
 
 App\Infrastructure\Environment::load($projectRoot . '/.env');
-ErrorHandler::register(getenv('APP_DEBUG') === 'true');
+ErrorHandler::register(App\Infrastructure\Environment::get('APP_DEBUG') === 'true');
 
 /** @var App\Http\Router $router */
 $router = require $projectRoot . '/bootstrap.php';

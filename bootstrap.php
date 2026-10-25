@@ -21,7 +21,7 @@ $connection = ConnectionFactory::create(
     (int) Environment::required('DB_PORT'),
     Environment::required('DB_DATABASE'),
     Environment::required('DB_USERNAME'),
-    getenv('DB_PASSWORD') ?: '',
+    Environment::get('DB_PASSWORD') ?? '',
 );
 $service = new ReservaService(
     new PdoReservaRepository($connection),
