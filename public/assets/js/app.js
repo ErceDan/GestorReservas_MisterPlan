@@ -34,11 +34,31 @@
             payload.data.forEach((reserva) => {
                 const row = document.createElement('tr');
 
-                ['nombre_huesped', 'nombre_alojamiento', 'fecha_entrada', 'estado', 'importe'].forEach((field) => {
-                    const cell = document.createElement('td');
-                    cell.textContent = reserva[field];
-                    row.append(cell);
-                });
+                const guest = document.createElement('td');
+                const detail = document.createElement('a');
+                detail.href = `/reservas/${reserva.id}`;
+                detail.textContent = reserva.nombre_huesped;
+                guest.append(detail);
+                row.append(guest);
+
+                const accommodation = document.createElement('td');
+                accommodation.textContent = reserva.nombre_alojamiento;
+                row.append(accommodation);
+
+                const stay = document.createElement('td');
+                stay.textContent = `${reserva.fecha_entrada} - ${reserva.fecha_salida}`;
+                row.append(stay);
+
+                const state = document.createElement('td');
+                const badge = document.createElement('span');
+                badge.className = `estado estado-${reserva.estado}`;
+                badge.textContent = reserva.estado;
+                state.append(badge);
+                row.append(state);
+
+                const amount = document.createElement('td');
+                amount.textContent = reserva.importe;
+                row.append(amount);
 
                 const actions = document.createElement('td');
                 if (reserva.estado === 'pendiente') actions.append(action(reserva.id, 'confirmada'));
