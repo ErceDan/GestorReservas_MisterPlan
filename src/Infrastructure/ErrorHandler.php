@@ -13,7 +13,7 @@ use Throwable;
 
 final class ErrorHandler
 {
-    public static function register(): void
+    public static function register(bool $debug = false): void
     {
         set_error_handler(
             static function (int $severity, string $message, string $file, int $line): bool {
@@ -26,8 +26,14 @@ final class ErrorHandler
         );
 
         set_exception_handler(
-            static function (Throwable $exception): void {
+            static function (Throwable $exception) use ($debug): void {
                 error_log((string) $exception);
+
+                if ($debug) {
+                    (new JsonResponse(['error' => $exception->getMessage()], 500))->send();
+
+                    return;
+                }
 
                 if ($exception instanceof ValidationException) {
                     (new JsonResponse(['error' => $exception->getMessage(), 'errors' => $exception->errors()], 400))->send();
