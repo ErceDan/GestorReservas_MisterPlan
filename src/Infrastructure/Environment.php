@@ -24,7 +24,7 @@ final class Environment
             [$key, $value] = array_pad(explode('=', $line, 2), 2, '');
             $key = trim($key);
 
-            if ($key !== '' && getenv($key) === false) {
+            if ($key !== '' && (getenv($key) === false || getenv($key) === '')) {
                 putenv($key . '=' . trim($value));
             }
         }
