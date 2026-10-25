@@ -2,6 +2,9 @@
     const $ = (selector) => document.querySelector(selector);
     const notice = $('#notice');
     const body = $('#reservas');
+    const createForm = $('#create');
+    const checkIn = createForm?.elements.fecha_entrada;
+    const checkOut = createForm?.elements.fecha_salida;
 
     if (!body) return;
 
@@ -14,6 +17,26 @@
         if (payload.errors) return Object.values(payload.errors).join(' ');
 
         return payload.error || 'No se pudo completar la operación.';
+    };
+
+    const followingDay = (date) => {
+        const [year, month, day] = date.split('-').map(Number);
+        const next = new Date(Date.UTC(year, month - 1, day + 1));
+
+        return next.toISOString().slice(0, 10);
+    };
+
+    const updateCheckOutMinimum = () => {
+        if (!checkIn.value) {
+            checkOut.removeAttribute('min');
+
+            return;
+        }
+
+        const minimum = followingDay(checkIn.value);
+        checkOut.min = minimum;
+
+        if (checkOut.value && checkOut.value < minimum) checkOut.value = '';
     };
 
     const action = (id, estado) => {
@@ -112,7 +135,10 @@
         load();
     });
 
-    $('#create').addEventListener('submit', async (event) => {
+    checkIn.addEventListener('change', updateCheckOutMinimum);
+    updateCheckOutMinimum();
+
+    createForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const form = event.currentTarget;
         say('Guardando reserva...');
@@ -127,6 +153,7 @@
             if (!response.ok) return say(errorMessage(payload), true);
 
             form.reset();
+            updateCheckOutMinimum();
             await load();
             say('Reserva creada.');
         } catch (error) {
