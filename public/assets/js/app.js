@@ -1,1 +1,97 @@
-(() => {const $=s=>document.querySelector(s),notice=$('#notice'),body=$('#reservas');if(!body)return;const say=(m,error=false)=>{notice.textContent=m;notice.style.color=error?'#b00020':'#075b23'};const action=(id,estado)=>{const b=document.createElement('button');b.textContent=estado==='confirmada'?'Confirmar':'Cancelar';b.dataset.id=id;b.dataset.estado=estado;if(estado==='cancelada')b.className='danger';return b};const load=async()=>{const p=new URLSearchParams(new FormData($('#filters')));try{const r=await fetch('/api/reservas?'+p),j=await r.json();if(!r.ok)throw Error(j.error);body.textContent='';j.data.forEach(x=>{const tr=document.createElement('tr');['nombre_huesped','nombre_alojamiento','fecha_entrada','estado','importe'].forEach(k=>{const td=document.createElement('td');td.textContent=x[k];tr.append(td)});const td=document.createElement('td');if(x.estado==='pendiente')td.append(action(x.id,'confirmada'));if(x.estado!=='cancelada')td.append(action(x.id,'cancelada'));tr.append(td);body.append(tr)})}catch(e){say(e.message,true)}};const change=async(id,estado)=>{const verbo=estado==='confirmada'?'confirmar':'cancelar';if(!confirm(`¿${verbo[0].toUpperCase()+verbo.slice(1)} esta reserva?`))return;const r=await fetch('/api/reservas/'+id+'/estado',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({estado})}),j=await r.json();if(!r.ok)return say(j.error,true);say(`Reserva ${estado}.`);load()};body.addEventListener('click',e=>{const b=e.target.closest('button[data-estado]');if(b)change(b.dataset.id,b.dataset.estado)});$('#filters').addEventListener('submit',e=>{e.preventDefault();load()});$('#create').addEventListener('submit',async e=>{e.preventDefault();const r=await fetch('/api/reservas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.fromEntries(new FormData(e.currentTarget)))}),j=await r.json();if(!r.ok)return say(j.error,true);e.currentTarget.reset();say('Reserva creada.');load()});})();
+(() => {
+    const $ = (selector) => document.querySelector(selector);
+    const notice = $('#notice');
+    const body = $('#reservas');
+
+    if (!body) return;
+
+    const say = (message, error = false) => {
+        notice.textContent = message;
+        notice.style.color = error ? '#b00020' : '#075b23';
+    };
+
+    const action = (id, estado) => {
+        const button = document.createElement('button');
+        button.textContent = estado === 'confirmada' ? 'Confirmar' : 'Cancelar';
+        button.dataset.id = id;
+        button.dataset.estado = estado;
+
+        if (estado === 'cancelada') button.className = 'danger';
+
+        return button;
+    };
+
+    const load = async () => {
+        const params = new URLSearchParams(new FormData($('#filters')));
+
+        try {
+            const response = await fetch(`/api/reservas?${params}`, {cache: 'no-store'});
+            const payload = await response.json();
+
+            if (!response.ok) throw Error(payload.error);
+
+            body.textContent = '';
+            payload.data.forEach((reserva) => {
+                const row = document.createElement('tr');
+
+                ['nombre_huesped', 'nombre_alojamiento', 'fecha_entrada', 'estado', 'importe'].forEach((field) => {
+                    const cell = document.createElement('td');
+                    cell.textContent = reserva[field];
+                    row.append(cell);
+                });
+
+                const actions = document.createElement('td');
+                if (reserva.estado === 'pendiente') actions.append(action(reserva.id, 'confirmada'));
+                if (reserva.estado !== 'cancelada') actions.append(action(reserva.id, 'cancelada'));
+                row.append(actions);
+                body.append(row);
+            });
+        } catch (error) {
+            say(error.message, true);
+        }
+    };
+
+    const change = async (id, estado) => {
+        const question = estado === 'confirmada' ? 'Confirmar esta reserva?' : 'Cancelar esta reserva?';
+        if (!confirm(question)) return;
+
+        const response = await fetch(`/api/reservas/${id}/estado`, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({estado}),
+        });
+        const payload = await response.json();
+
+        if (!response.ok) return say(payload.error, true);
+
+        await load();
+        say(`Reserva ${estado}.`);
+    };
+
+    body.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-estado]');
+        if (button) change(button.dataset.id, button.dataset.estado);
+    });
+
+    $('#filters').addEventListener('submit', (event) => {
+        event.preventDefault();
+        load();
+    });
+
+    $('#create').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const response = await fetch('/api/reservas', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(Object.fromEntries(new FormData(form))),
+        });
+        const payload = await response.json();
+
+        if (!response.ok) return say(payload.error, true);
+
+        form.reset();
+        await load();
+        say('Reserva creada.');
+    });
+})();
