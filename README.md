@@ -1,6 +1,20 @@
-# Reservas de alojamiento
+# Gestor de reservas de alojamiento
 
-Prueba técnica para una API y una interfaz de gestión de reservas, desarrollada en PHP nativo.
+Prueba técnica para MisterPlan: API en PHP nativo, vistas Twig e interfaz en JavaScript sin framework.
+
+**Demo:** https://ercedev.free.nf
+**Repositorio:** https://github.com/ErceDan/GestorReservas_MisterPlan
+
+## Funcionalidades
+
+- API JSON para listar, consultar, crear y cambiar el estado de reservas.
+- Filtros combinables por estado, fechas y nombre de huésped.
+- Estados `pendiente`, `confirmada` y `cancelada`, con transiciones controladas.
+- Historial de eventos creado al registrar o cambiar el estado de una reserva.
+- Listado y detalle renderizados en servidor con Twig, plantilla base y autoescaping activo.
+- Creación, filtrado, confirmación y cancelación desde JavaScript sin recargar la página.
+- Avisos de carga, éxito, validación y errores de red.
+- Datos iniciales realistas en distintos estados.
 
 ## Requisitos
 
@@ -12,38 +26,56 @@ Prueba técnica para una API y una interfaz de gestión de reservas, desarrollad
 
 1. Copia `.env.example` como `.env` y completa las credenciales locales.
 2. Ejecuta `composer install`.
-3. Importa `database/schema.sql` con el cliente MySQL configurado en UTF-8. Por ejemplo: `mysql --default-character-set=utf8mb4 -u root -e "source database/schema.sql"`.
-   No uses `Get-Content ... | mysql` en PowerShell: puede alterar caracteres acentuados al importar.
-4. Arranca la aplicación con `php -S 127.0.0.1:8080 -t public` y abre `http://127.0.0.1:8080`.
+3. Crea la base de datos e importa `database/schema.sql` en UTF-8. Por ejemplo:
 
-## Estructura
+   ```bash
+   mysql --default-character-set=utf8mb4 -u root -p < database/schema.sql
+   ```
 
-- `public/`: punto de entrada y recursos estáticos.
-- `src/`: aplicación organizada por capas.
-- `templates/`: vistas Twig.
-- `database/`: esquema y datos de ejemplo.
-- `tests/`: pruebas automatizadas.
+4. Arranca la aplicación:
 
-## Decisiones de diseño (borrador)
+   ```bash
+   php -S 127.0.0.1:8080 -t public
+   ```
 
-- Se usa un front controller y enrutador propio para mantener el alcance de PHP nativo.
-- El dominio y la lógica de aplicación no dependen de PDO ni de Twig; los repositorios y controladores son adaptadores externos.
-- PDO usará consultas preparadas, excepciones y emulación desactivada.
-- Las credenciales viven en `.env`, que no se versiona; `.env.example` documenta las variables necesarias.
-- Twig mantiene el autoescaping activado. No se prevé usar `|raw`.
-- El esquema usa InnoDB, `utf8mb4`, importes `DECIMAL(10,2)`, restricciones `CHECK` y una clave foránea para preservar la integridad del historial. `database/schema.sql` es un inicializador de desarrollo: al reimportarlo recrea las dos tablas de la aplicación y sus datos de ejemplo.
-- La capa HTTP centraliza el enrutado por método y ruta, devuelve JSON con cabeceras de seguridad y registra internamente los errores inesperados sin mostrar trazas al cliente.
+5. Abre `http://127.0.0.1:8080`.
 
-- Los estados se modelan con un enum respaldado por `string`: una reserva pendiente puede confirmarse o cancelarse; una confirmada puede cancelarse; una cancelada es terminal.
+No uses `Get-Content ... | mysql` desde PowerShell para importar el SQL, porque puede alterar caracteres acentuados. El fichero incluye DDL e INSERTs y deja la aplicación lista con un único import.
 
-- Las entidades de dominio son inmutables: cambiar el estado crea una nueva instancia. El importe se conserva como texto decimal para no introducir imprecisiones de `float`.
+## Pruebas
 
-- La validación de creación se ejecuta en servidor, limita el tamaño de los campos y devuelve errores por campo. Los importes se validan como decimales de hasta dos posiciones, sin convertirlos a `float`.
+```bash
+composer test
+```
 
-- La creación y los cambios de estado se ejecutan dentro de transacciones PDO: reserva y evento se confirman juntos o se revierten juntos.
+Hay pruebas unitarias de las reglas de estado, la entidad de reserva, el validador de creación y el enrutador.
 
-## Pendiente
+## Organización y decisiones
 
-- Definir el esquema SQL y los datos iniciales.
-- Implementar el front controller, HTTP, dominio, persistencia, API y vistas.
-- Documentar el arranque local, pruebas, despliegue, escalabilidad y mejoras futuras.
+- `src/Domain`: entidades y reglas de negocio independientes de la infraestructura.
+- `src/Service`: casos de uso y transacciones al crear reservas o registrar eventos.
+- `src/Repository`: interfaces y adaptadores PDO con consultas preparadas.
+- `src/Controller` y `src/Http`: adaptadores HTTP, respuestas JSON y enrutado.
+- `templates`: vistas Twig con herencia y formato de fechas/importes en plantilla.
+
+Se utiliza MariaDB/MySQL por ser la opción preferida en el enunciado. PDO tiene las emulaciones desactivadas y los datos de entrada se validan en servidor. Twig mantiene el autoescaping activado y no se usa `|raw`. Las credenciales no se versionan; se cargan desde `.env`.
+
+El esquema usa InnoDB, `utf8mb4`, importes `DECIMAL(10,2)`, restricciones e integridad referencial entre reservas y su historial. El manejo de errores está centralizado: devuelve 400 para validación, 404 para recursos ausentes y 500 genérico para errores inesperados en producción.
+
+## Despliegue
+
+La demo está desplegada en InfinityFree: https://ercedev.free.nf
+
+En el hosting compartido los archivos públicos están en `htdocs`. El fichero `.htaccess` reescribe las rutas de la aplicación hacia el front controller y protege código fuente, dependencias y configuración.
+
+## Con más tiempo
+
+- Añadir autenticación y autorización para separar usuarios y roles.
+- Incorporar paginación, ordenación y búsqueda indexada.
+- Añadir pruebas de integración HTTP y pruebas end-to-end del flujo JavaScript.
+- Mejorar la accesibilidad con mensajes asociados a cada campo y estados ARIA más detallados.
+- Externalizar la configuración de despliegue y automatizarlo mediante CI.
+
+## Escalabilidad: 1.000 reservas por hora
+
+Para ese volumen mantendría la API sin estado detrás de varias instancias PHP, usaría un pool de conexiones y añadiría índices para estado, fechas y nombre del huésped. Incorporaría paginación obligatoria, observabilidad (logs estructurados, métricas y alertas) y copias de seguridad verificadas. Las tareas no críticas, como notificaciones, se enviarían a una cola; el historial seguiría guardándose transaccionalmente junto a cada cambio de reserva.
